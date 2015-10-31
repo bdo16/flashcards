@@ -1,0 +1,263 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>capstone final project</title>
+    <script src="//cdn.jsdelivr.net/phaser/2.2.2/phaser.min.js"></script>
+</head>
+<body>
+
+    <script type="text/javascript">
+
+    window.onload = function() {
+
+        var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { create: create, update: update });
+
+        var flashcards;
+        var choices;
+        var inputNumber;
+        var promptForGuess;
+        var upperLeftPrompt;
+        var upperRightPrompt;
+        var lowerLeftPrompt;
+        var lowerRightPrompt;
+        var timeCheck;
+        var pointerLocation;
+        var comboNumber;
+        var comboText;
+        var comboCheck;
+
+
+        function create() {
+
+            game.stage.backgroundColor = '#FFFFFF';
+
+            flashcards = [
+            ['赤', 'red'],
+            ['黄色', 'yellow'],
+            ['白', 'white'],
+            ['緑', 'green'],
+            ['黒', 'black'],
+            ['青', 'blue']
+            ];
+
+            startChoices();
+
+            var style = { font: "60px Arial", fill: "#0000FF", align: "center" };
+            comboText = game.add.text(game.world.centerX, game.world.centerY / 2.0, "", style);
+            comboText.anchor.setTo(0.5, 0.5);    
+
+            comboNumber = 0;
+
+            game.input.onDown.add(function(pointer) {
+                var x = pointer.positionDown.x;
+                var y = pointer.positionDown.y;
+
+                //pointerLocation.text = x + " " + y + " and center is: " + game.world.centerX + " " + game.world.centerY;
+
+                if (x < game.world.centerX && 
+                    y > game.world.centerY - 100 && 
+                    y < game.world.centerY * 1.5 - 100) {
+
+                    if(flashcards[inputNumber][1] === upperLeftPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }
+                    
+                }
+                else if (x > game.world.centerX &&
+                    y > game.world.centerY - 100 &&
+                    y < game.world.centerY * 1.5 - 100) {
+
+                    if(flashcards[inputNumber][1] === upperRightPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }            
+                    
+                }
+                else if (x < game.world.centerX &&
+                    y > game.world.centerY * 1.5 - 100) {
+
+                    if(flashcards[inputNumber][1] === lowerLeftPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }
+
+                }
+                else if (x > game.world.centerX &&
+                    y > game.world.centerY * 1.5 - 100) {
+
+                    if(flashcards[inputNumber][1] === lowerRightPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }
+
+                }       
+            }, this);
+
+            var q = game.input.keyboard.addKey(Phaser.Keyboard.Q);
+            var w = game.input.keyboard.addKey(Phaser.Keyboard.W);
+            var a = game.input.keyboard.addKey(Phaser.Keyboard.A);
+            var s = game.input.keyboard.addKey(Phaser.Keyboard.S);
+
+            q.onDown.add(function() {
+                if (flashcards[inputNumber][1] === upperLeftPrompt.text) {
+                    resetChoices(true);
+                }
+                else {
+                    restChoices(false);
+                }
+            }, this);
+
+            w.onDown.add(function() {
+                if (flashcards[inputNumber][1] === upperRightPrompt.text) {
+                    resetChoices(true);
+                }
+                else {
+                    resetChoices(false);
+                }
+            }, this);
+
+            a.onDown.add(function() {
+                if (flashcards[inputNumber][1] === lowerLeftPrompt.text) {
+                    resetChoices(true);
+                }
+                else {
+                    resetChoices(false);
+                }
+            }, this);
+
+            s.onDown.add(function() {
+                if (flashcards[inputNumber][1] === lowerRightPrompt.text) {
+                    resetChoices(true);
+                }
+                else {
+                    resetChoices(false);
+                }
+            }, this);    
+        }
+
+        function startChoices() {
+            //randomly chooses the prompt    
+            inputNumber = Math.floor(Math.random() * flashcards.length);
+            var promptText = flashcards[inputNumber][0];
+            var style = { font: "65px Arial", fill: "#000000", align: "center" };
+            promptForGuess = game.add.text(game.world.centerX, 50, promptText, style);
+            promptForGuess.anchor.setTo(0.5, 0.5);
+
+            choices = choices();
+
+            upperLeftPrompt = game.add.text(game.world.centerX / 2.0, game.world.centerY, choices[0], style);
+            upperLeftPrompt.anchor.setTo(0.5, 0.5);    
+
+            upperRightPrompt = game.add.text(game.world.centerX * 3 / 2.0, game.world.centerY, choices[1], style);
+            upperRightPrompt.anchor.setTo(0.5, 0.5);        
+
+            lowerLeftPrompt = game.add.text(game.world.centerX / 2.0, game.world.centerY * 3 / 2.0, choices[2], style);
+            lowerLeftPrompt.anchor.setTo(0.5, 0.5);   
+
+            lowerRightPrompt = game.add.text(game.world.centerX * 3 / 2.0, game.world.centerY * 3 / 2.0, choices[3], style);
+            lowerRightPrompt.anchor.setTo(0.5, 0.5);   
+
+            comboCheck = game.time.now;
+        }
+
+        function choices() {
+            //sets up the four choices in the bottom of the screen
+            var tempChoices = [ flashcards[inputNumber][1] ];
+            var flashcardsTemp = JSON.parse(JSON.stringify(flashcards));
+            flashcardsTemp.splice(inputNumber, 1);
+
+            for (var i = 0; i < 3; i++) {
+                var randomChoice = Math.floor(Math.random() * flashcardsTemp.length);
+                tempChoices.push(flashcardsTemp[randomChoice][1]);
+                flashcardsTemp.splice(randomChoice, 1);
+            }
+            tempChoices.sort(function() { 
+                return 0.5 - Math.random();
+            });
+            return tempChoices;
+        }
+
+        function resetChoices(correct) {
+
+            updateCombo(correct);
+
+            if (correct) {
+                game.stage.backgroundColor = '#00FF00';
+
+                var previousInputNumber = inputNumber;
+                inputNumber = Math.floor(Math.random() * (flashcards.length - 1));
+                if (inputNumber >= previousInputNumber) {
+                    inputNumber += 1;
+                }
+
+                promptForGuess.text = flashcards[inputNumber][0];
+
+                var possibleChoices = [ flashcards[inputNumber][1] ];
+                var flashcardsTemp = flashcards.slice(0);
+                flashcardsTemp.splice(inputNumber, 1);
+
+                for (var i = 0; i < 3; i++) {
+                    var randomChoice = Math.floor(Math.random() * flashcardsTemp.length);
+                    possibleChoices.push(flashcardsTemp[randomChoice][1]);
+                    flashcardsTemp.splice(randomChoice, 1);
+                }
+                possibleChoices.sort(function() { 
+                    return 0.5 - Math.random();
+                });
+
+                upperLeftPrompt.text = possibleChoices[0];
+                upperRightPrompt.text = possibleChoices[1];
+                lowerLeftPrompt.text = possibleChoices[2];
+                lowerRightPrompt.text = possibleChoices[3];
+            }
+
+            else {
+                game.stage.backgroundColor = '#FF0000';
+            }
+
+            timeCheck = game.time.now;
+        }
+
+        function updateCombo(correct) {
+
+            if (correct &&
+                game.time.now - comboCheck < 1500) {
+                comboNumber += 1;
+            }
+            else {
+                comboNumber = 0;
+            }
+
+            if (comboNumber < 2) {
+                comboText.text = "";
+            }
+            else {
+                comboText.text = comboNumber + "X Combo!";
+            }
+            comboCheck = game.time.now;
+        }
+
+        function update() {
+            if (game.time.now - timeCheck > 200) {
+                game.stage.backgroundColor = '#FFFFFF';
+            }
+            if (game.time.now - comboCheck > 1500) {
+                comboText.text = "";
+            }
+        }
+    };
+
+</script>
+
+</body>
+</html>
