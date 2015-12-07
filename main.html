@@ -14,6 +14,9 @@
         var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { create: create, update: update });
 
         var flashcards;
+        var healthbar;
+        var totalhealth;
+        var score;
         var choices;
         var inputNumber;
         var promptForGuess;
@@ -33,21 +36,32 @@
             game.stage.backgroundColor = '#FFFFFF';
 
             flashcards = [
-            ['赤', 'red'],
-            ['黄色', 'yellow'],
-            ['白', 'white'],
-            ['緑', 'green'],
-            ['黒', 'black'],
-            ['青', 'blue']
+            ['あ', 'a'],
+            ['い', 'i'],
+            ['う', 'u'],
+            ['え', 'e'],
+            ['お', 'o'],
+            ['か', 'ka'],
+            ['き', 'ki'],
+            ['く', 'ku'],
+            ['け', 'ke'],
+            ['こ', 'ko']
             ];
 
+
             startChoices();
+
+            score = 0;    
+            comboNumber = 0;
 
             var style = { font: "60px Arial", fill: "#0000FF", align: "center" };
             comboText = game.add.text(game.world.centerX, game.world.centerY / 2.0, "", style);
             comboText.anchor.setTo(0.5, 0.5);    
 
-            comboNumber = 0;
+            totalhealth = 200;
+            healthbar = game.add.graphics(0, 0);
+            healthbar.beginFill(0x00ff00, 1);
+            healthbar.drawRect(0, 0, 600, 10);
 
             game.input.onDown.add(function(pointer) {
                 var x = pointer.positionDown.x;
@@ -233,6 +247,11 @@
             if (correct &&
                 game.time.now - comboCheck < 1500) {
                 comboNumber += 1;
+                score += comboNumber;
+            }
+            else if (correct) {
+                score += 1;
+                comboNumber = 0;
             }
             else {
                 comboNumber = 0;
@@ -244,7 +263,17 @@
             else {
                 comboText.text = comboNumber + "X Combo!";
             }
+
+            updateHealthbar();
+
             comboCheck = game.time.now;
+        }
+
+
+        function updateHealthbar() {
+            healthbar.clear();
+            healthbar.beginFill(0x00ff00, 1);
+            healthbar.drawRect(0, 0, ((totalhealth - score)/totalhealth) * 600, 10);
         }
 
         function update() {
