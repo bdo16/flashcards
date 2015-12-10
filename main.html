@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>capstone final project</title>
+    <title>ひらがなドラゴン</title>
     <script src="//cdn.jsdelivr.net/phaser/2.2.2/phaser.min.js"></script>
 </head>
 <body>
@@ -13,21 +13,26 @@
 
         var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
+        var gameover;
+        var dragonanimation;
         var flashcards;
         var water_dragon;
-        var healthbar;
-        var totalhealth;
-        var score;
+        var dragonhealthbar;
+        var dragontotalhealth;
+        var dragoncurrenthealth;
+        var humanhealthbar;
+        var humantotalhealth;
+        var humancurrenthealth;
         var choices;
         var inputNumber;
-        var promptForGuess;
+        var promptForGusess;
         var upperLeftPrompt;
         var upperRightPrompt;
         var lowerLeftPrompt;
         var lowerRightPrompt;
         var pointerLocation;
         var comboNumber;
-        var comboText;
+        var displayText;
         var comboCheck;
 
 
@@ -38,6 +43,7 @@
 
         function create() {
 
+            gameover = false;
             game.stage.backgroundColor = '#DEEFF5';
 
             flashcards = [
@@ -91,77 +97,88 @@
 
             startChoices();
 
-            score = 0;    
             comboNumber = 0;
 
-            water_dragon = game.add.sprite(game.world.centerX, game.world.centerY - 100, 'water_dragon');
+            water_dragon = game.add.sprite(game.world.centerX, game.world.centerY - 80, 'water_dragon');
             water_dragon.anchor.setTo(0.5, 0.5);
             water_dragon.scale.set(2, 2);
 
-            var animate = water_dragon.animations.add("animate", [392, 393, 394, 395, 396, 397, 398, 399]);
-            water_dragon.animations.play('animate', 10, true);
+            water_dragon.animations.add("normal_flap", [336, 337, 338, 339, 340, 341, 342, 343]);
+            water_dragon.animations.add("magic_headbutt", [344, 345, 346, 347, 348, 349, 350, 351, 360, 361, 362, 363, 364, 365, 366, 367]);
+            water_dragon.animations.add("zoom_forward", [352, 353, 354, 355, 356, 357, 358, 359, 368, 369, 370, 371, 372, 373, 374, 375]);
+            water_dragon.animations.add("collapse_dead", [376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391]);
+
+            dragonanimation = water_dragon.animations.play('normal_flap', 10, true);
+
+            dragontotalhealth = 100;
+            dragoncurrenthealth = dragontotalhealth;
+            dragonhealthbar = game.add.graphics(300, 400);
+
+            humantotalhealth = 100;
+            humancurrenthealth = humantotalhealth;
+            humanhealthbar = game.add.graphics(300, 400);
+
+            updateHealthbar();
+
 
 
             var style = { font: "60px Arial", fill: "#0000FF", align: "center" };
-            comboText = game.add.text(game.world.centerX, game.world.centerY / 2.0, "", style);
-            comboText.anchor.setTo(0.5, 0.5);
-
-            totalhealth = 200;
-            healthbar = game.add.graphics(0, 400);
-            updateHealthbar();
+            displayText = game.add.text(game.world.centerX, 20, "", style);
+            displayText.anchor.setTo(0.5, 0);
 
             game.input.onDown.add(function(pointer) {
-                var x = pointer.positionDown.x;
-                var y = pointer.positionDown.y;
+                if (gameover === false) {
+                    var x = pointer.positionDown.x;
+                    var y = pointer.positionDown.y;
 
-                //pointerLocation.text = x + " " + y + " and center is: " + game.world.centerX + " " + game.world.centerY;
+                    //pointerLocation.text = x + " " + y + " and center is: " + game.world.centerX + " " + game.world.centerY;
 
-                if (x < game.world.centerX && 
-                    y > game.world.centerY && 
-                    y < game.world.centerY * 1.5) {
+                    if (x < game.world.centerX && 
+                        y > game.world.centerY && 
+                        y < game.world.centerY * 1.5) {
 
-                    if(flashcards[inputNumber][1] === upperLeftPrompt.text) {
-                        resetChoices(true);
+                        if(flashcards[inputNumber][1] === upperLeftPrompt.text) {
+                            resetChoices(true);
+                        }
+                        else {
+                            resetChoices(false);
+                        }
+                        
                     }
-                    else {
-                        resetChoices(false);
-                    }
-                    
-                }
-                else if (x > game.world.centerX &&
-                    y > game.world.centerY &&
-                    y < game.world.centerY * 1.5) {
+                    else if (x > game.world.centerX &&
+                        y > game.world.centerY &&
+                        y < game.world.centerY * 1.5) {
 
-                    if(flashcards[inputNumber][1] === upperRightPrompt.text) {
-                        resetChoices(true);
+                        if(flashcards[inputNumber][1] === upperRightPrompt.text) {
+                            resetChoices(true);
+                        }
+                        else {
+                            resetChoices(false);
+                        }            
+                        
                     }
-                    else {
-                        resetChoices(false);
-                    }            
-                    
-                }
-                else if (x < game.world.centerX &&
-                    y > game.world.centerY * 1.5) {
+                    else if (x < game.world.centerX &&
+                        y > game.world.centerY * 1.5) {
 
-                    if(flashcards[inputNumber][1] === lowerLeftPrompt.text) {
-                        resetChoices(true);
-                    }
-                    else {
-                        resetChoices(false);
-                    }
+                        if(flashcards[inputNumber][1] === lowerLeftPrompt.text) {
+                            resetChoices(true);
+                        }
+                        else {
+                            resetChoices(false);
+                        }
 
-                }
-                else if (x > game.world.centerX &&
-                    y > game.world.centerY * 1.5) {
-
-                    if(flashcards[inputNumber][1] === lowerRightPrompt.text) {
-                        resetChoices(true);
                     }
-                    else {
-                        resetChoices(false);
-                    }
+                    else if (x > game.world.centerX &&
+                        y > game.world.centerY * 1.5) {
 
-                }       
+                        if(flashcards[inputNumber][1] === lowerRightPrompt.text) {
+                            resetChoices(true);
+                        }
+                        else {
+                            resetChoices(false);
+                        }
+                    }    
+                }   
             }, this);
 
             var q = game.input.keyboard.addKey(Phaser.Keyboard.Q);
@@ -170,38 +187,46 @@
             var s = game.input.keyboard.addKey(Phaser.Keyboard.S);
 
             q.onDown.add(function() {
-                if (flashcards[inputNumber][1] === upperLeftPrompt.text) {
-                    resetChoices(true);
-                }
-                else {
-                    restChoices(false);
+                if (gameover === false) {
+                    if (flashcards[inputNumber][1] === upperLeftPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }
                 }
             }, this);
 
             w.onDown.add(function() {
-                if (flashcards[inputNumber][1] === upperRightPrompt.text) {
-                    resetChoices(true);
-                }
-                else {
-                    resetChoices(false);
+                if (gameover === false) {
+                    if (flashcards[inputNumber][1] === upperRightPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }
                 }
             }, this);
 
             a.onDown.add(function() {
-                if (flashcards[inputNumber][1] === lowerLeftPrompt.text) {
-                    resetChoices(true);
-                }
-                else {
-                    resetChoices(false);
+                if (gameover === false) {
+                    if (flashcards[inputNumber][1] === lowerLeftPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }
                 }
             }, this);
 
             s.onDown.add(function() {
-                if (flashcards[inputNumber][1] === lowerRightPrompt.text) {
-                    resetChoices(true);
-                }
-                else {
-                    resetChoices(false);
+                if (gameover === false) {
+                    if (flashcards[inputNumber][1] === lowerRightPrompt.text) {
+                        resetChoices(true);
+                    }
+                    else {
+                        resetChoices(false);
+                    }
                 }
             }, this);    
         }
@@ -211,7 +236,7 @@
             inputNumber = Math.floor(Math.random() * flashcards.length);
             var promptText = flashcards[inputNumber][0];
             var style = { font: "65px Arial", fill: "#000000", align: "center" };
-            promptForGuess = game.add.text(game.world.centerX, 50, promptText, style);
+            promptForGuess = game.add.text(game.world.centerX, game.world.centerY * 1.5, promptText, style);
             promptForGuess.anchor.setTo(0.5, 0.5);
 
             choices = choices();
@@ -286,50 +311,88 @@
 
             if (correct &&
                 game.time.now - comboCheck < 1000) {
-                if (comboNumber == 0) {
-                    comboNumber += 1;
+                comboNumber += 1;
+                dragoncurrenthealth -= comboNumber;
+                if (comboNumber > 1) {
+                    displayText.text = "Correct!\n" + comboNumber + "X Combo!";
                 }
-                else {
-                    comboNumber *= 2;
-                }
-                score += comboNumber;
             }
             else if (correct) {
-                score += 1;
+                dragoncurrenthealth -= 1;
                 comboNumber = 0;
+                displayText.text = "Correct!";
             }
+
             else {
+                if (Math.random() < 0.3) {
+                    dragonanimation = water_dragon.animations.play('magic_headbutt', 10, false);
+                    humancurrenthealth -= 30;
+                }
+                else {
+                    dragonanimation = water_dragon.animations.play('zoom_forward', 10, false);
+                    humancurrenthealth -= 10;
+                }
+                displayText.text = "Incorrect";
                 comboNumber = 0;
             }
 
-            if (comboNumber > 1) {
-                var response = ["much wow", "such doge", "it's over 9000", "すごいです"];
-                var randomIndex = Math.floor(Math.random() * (response.length - 1));
-                comboText.text = response[randomIndex];
+            if (dragoncurrenthealth <= 0) {
+                gameover = true;
+                dragonanimation = water_dragon.animations.play('collapse_dead', 10, false);
+                displayText.fontSize = 36;
+                displayText.text = "Congratulations!\n You slayed the Hiragana Dragon!";
+                dragonhealthbar.clear();
+                humanhealthbar.clear();
+                promptForGuess.visible = false;
+                upperLeftPrompt.visible = false;
+                upperRightPrompt.visible = false;
+                lowerLeftPrompt.visible = false;
+                lowerRightPrompt.visible = false;
+
             }
 
-            updateHealthbar();
+            if (humancurrenthealth <= 0) {
+                gameover = true;
+                dragonhealthbar.clear();
+                humanhealthbar.clear(); 
+                water_dragon.visible = false;               
+                promptForGuess.visible = false;
+                upperLeftPrompt.visible = false;
+                upperRightPrompt.visible = false;
+                lowerLeftPrompt.visible = false;
+                lowerRightPrompt.visible = false;
+            }
+            if (!gameover) {
+                updateHealthbar();
+            }
 
             comboCheck = game.time.now;
         }
 
 
         function updateHealthbar() {
-            healthbar.clear();
-            var color = 0x00ff00;
-            if (((totalhealth - score)/totalhealth) < 0.1) {
-                color = 0xFF0000;
-            }
-            else if (((totalhealth - score)/totalhealth) < 0.7) {
-                color = 0xFFA500;
-            }
-            healthbar.beginFill(color, 1);
-            healthbar.drawRect(0, 0, ((totalhealth - score)/totalhealth) * 600, 10);
+            dragonhealthbar.clear();
+            var dragoncolor = 0xff0000;
+            dragonhealthbar.beginFill(dragoncolor, 1);
+            if (dragoncurrenthealth > 0) {
+                dragonhealthbar.drawRect(0, 0, dragoncurrenthealth/dragontotalhealth * -300, 10);
+            }  
+
+            var humancolor = 0x00ff00;
+            humanhealthbar.clear();
+            humanhealthbar.beginFill(humancolor, 1);
+            if (humancurrenthealth > 0) {
+                humanhealthbar.drawRect(0, 0, humancurrenthealth/humantotalhealth * 300, 10);
+            }  
+
         }
 
         function update() {
-            if (game.time.now - comboCheck > 1000) {
-                comboText.text = "";
+            if (game.time.now - comboCheck > 1000 && gameover === false) {
+                displayText.text = "";
+            }
+            if (dragonanimation.name !== 'collapse_dead' && dragonanimation.isFinished) {
+                dragonanimation = water_dragon.animations.play('normal_flap', 10, true);
             }
         }
     };
